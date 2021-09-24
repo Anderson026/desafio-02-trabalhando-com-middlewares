@@ -13,6 +13,8 @@ function checksExistsUserAccount(request, response, next) {
   // Complete aqui
   const { username } = request.headers;
 
+  if(!username) return response.status(400).json({ error: 'username is required' });
+
   const user = users.find((user) => user.username === username);
 
   if(!user) {
@@ -20,7 +22,6 @@ function checksExistsUserAccount(request, response, next) {
   }
 
   request.user = user;
-
   return next();
 }
 
@@ -37,21 +38,23 @@ function checksCreateTodosUserAvailability(request, response, next) {
 
 function checksTodoExists(request, response, next) {
   // Complete aqui
-  const { user } = request;
   const {id} = request.params;
   const { username } = request.headers;
 
-  const userExists = users.find((user) => user.username === username);
+  const user = users.find((user) => user.username === username);
 
-  if(!userExists) {
+  if(!user) {
     return response.status(404).json({ error: "User not found!" });
   }
+
+  const checkUuidIsValid = validate(id);
+  if (!checkUuidIsValid) return response.status(400).json({ error: 'Id invalid' });
 
   const todo = users.find((todo) => todo.id === id);
 
   if (!todo) {
-    return response.status(400).json({ error: "Todo not found" });
-  }
+    return response.status(404).json({ error: "Todo not found" });
+  }  
 
   request.user = user;
   request.todo = todo;
@@ -64,6 +67,8 @@ function findUserById(request, response, next) {
   // Complete aqui
   const {id} = request.params;
   
+  if (!id) return response.status(400).json({ error: 'id is required' });
+
   const user = users.find((user) => user.id === id);
   if (!user) {
     return response.status(404).json({ error: "User not found!" });
